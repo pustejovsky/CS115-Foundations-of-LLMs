@@ -267,7 +267,7 @@
     50%{transform:translateY(-16px) rotate(3deg)}
   }
 
-  .motif{position:absolute; top:-10px; right:-50px; z-index:0; pointer-events:none; animation:drift 16s ease-in-out infinite}
+  .motif{position:absolute; top:-10px; right:10px; z-index:0; pointer-events:none; animation:drift 16s ease-in-out infinite}
   @keyframes drift{
     0%,100%{transform:translateY(0) rotate(0deg)}
     50%{transform:translateY(-10px) rotate(-1.5deg)}
@@ -343,7 +343,7 @@
     <span style="top:82%;left:38%;animation-delay:-2s;">⊗</span>
   </div>
   <div class="motif" aria-hidden="true">
-    <svg viewBox="0 0 220 200" width="380" height="340" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 220 200" width="320" height="291" fill="none" xmlns="http://www.w3.org/2000/svg">
       <!-- a small feed-forward neural network: input layer -> hidden layer -> output layer -->
       <g stroke="var(--accent)">
         <!-- input -> hidden edges -->
@@ -389,7 +389,7 @@
       <circle cx="194" cy="80" r="8" fill="var(--accent)" fill-opacity="0.18" stroke="var(--accent)" stroke-opacity="0.8" stroke-width="2.2"></circle>
       <circle cx="194" cy="136" r="8" fill="var(--accent)" fill-opacity="0.18" stroke="var(--accent)" stroke-opacity="0.8" stroke-width="2.2"></circle>
 
-      <text x="150" y="196" font-family="var(--serif)" font-style="italic" font-weight="600" font-size="15" fill="var(--accent)" fill-opacity="0.4">ŷ = f(Wx+b)</text>
+      <text x="208" y="196" text-anchor="end" font-family="var(--serif)" font-style="italic" font-weight="600" font-size="15" fill="var(--accent)" fill-opacity="0.4">ŷ = f(Wx+b)</text>
     </svg>
   </div>
   <div class="wrap">
