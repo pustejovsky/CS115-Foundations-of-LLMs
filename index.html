@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CS 115 — Foundations of Large Language Models</title>
+<meta name="description" content="Course site for COSI 115B: Fundamentals of Natural Language Processing II, Brandeis University — lectures, quizzes, homework and readings tracing the path from perceptrons to large language models.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,500&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --display:"Fraunces", "Source Serif 4", Georgia, serif;
+    --serif:"Source Serif 4", Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    --sans:"Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    --bg:#ffffff; --bg-raised:#f4f2fb; --ink:#1d1b2a; --ink-soft:#54506b;
+    --ink-faint:#8d89a5; --line:#e2defa; --line-strong:#c6befa; --accent:#5338d6; --accent-ink:#ffffff;
+    --accent-soft:#e9e4fc; --pdf:#b4530f; --html:#5338d6; --ext:#2c5f8a;
+    --missing:#8a8a86; --code:#ece9f8; --shadow: 0 1px 1px rgba(30,10,80,.05), 0 10px 24px rgba(30,10,80,.08);
+    --radius:3px; --grid-dot: rgba(83,56,214,.09); --accent-copper:#c08a2e;
+    --sheen: linear-gradient(125deg, transparent 12%, rgba(83,56,214,.06) 38%, rgba(83,56,214,.12) 47%, rgba(83,56,214,.06) 56%, transparent 82%);
+    --accent-metal: linear-gradient(135deg, #241a5e 0%, #5b43d6 25%, #b9a6ff 45%, #5b43d6 65%, #241a5e 100%);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#141225; --bg-raised:#1b1830; --ink:#e9e5f8; --ink-soft:#b3aed0;
+      --ink-faint:#7b76a0; --line:#2b2648; --line-strong:#423a66; --accent:#a393f5; --accent-ink:#141225;
+      --accent-soft:#241f42; --pdf:#e2a86e; --html:#a393f5; --ext:#7fb0d9;
+      --missing:#746f8c; --code:#201c38; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 28px rgba(0,0,0,.4);
+      --grid-dot: rgba(163,147,245,.08); --accent-copper:#d9b65c;
+      --sheen: linear-gradient(125deg, transparent 12%, rgba(255,255,255,.05) 38%, rgba(255,255,255,.09) 47%, rgba(255,255,255,.05) 56%, transparent 82%);
+      --accent-metal: linear-gradient(135deg, #4a3f82 0%, #8c78e0 25%, #d8cdfb 45%, #8c78e0 65%, #4a3f82 100%);
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+    background-color:var(--bg);
+    background-image:
+      var(--sheen),
+      radial-gradient(1100px 600px at 88% -12%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 62%),
+      radial-gradient(900px 520px at -8% 108%, color-mix(in srgb, var(--pdf) 9%, transparent), transparent 62%),
+      radial-gradient(var(--grid-dot) 1px, transparent 1.4px);
+    background-size: auto, auto, auto, 24px 24px;
+    background-position: 0 0, 0 0, 0 0, 0 0;
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    background-attachment: fixed, fixed, fixed, fixed;
+  }
+  a{color:var(--accent); text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:900px; margin:0 auto; padding:0 24px}
+
+  header.hero{
+    padding:60px 0 0; background:
+      linear-gradient(var(--bg-raised), var(--bg-raised)) padding-box,
+      var(--bg);
+    background-color:var(--bg-raised);
+    box-shadow: inset 0 -1px 0 var(--line);
+  }
+  header.hero .wrap{padding-bottom:32px}
+  .kicker{
+    font-family:var(--serif); font-variant:small-caps; letter-spacing:.06em; font-size:15px;
+    font-weight:600; color:var(--accent); margin:0 0 14px;
+  }
+  h1{
+    font-family:var(--display); font-weight:700; font-size:clamp(34px,5vw,52px);
+    line-height:1.08; margin:0 0 2px; letter-spacing:-.01em; color:var(--ink);
+  }
+  .tagline{
+    font-family:var(--display); font-style:italic; font-weight:500; font-size:clamp(16px,2vw,20px);
+    color:var(--accent); margin:0 0 16px;
+  }
+  .byline{color:var(--ink-soft); font-size:16px; margin:0 0 24px; max-width:620px}
+  .byline a{color:var(--ink-soft); text-decoration:underline}
+  .hero-links{display:flex; gap:10px; flex-wrap:wrap}
+  .pill{
+    display:inline-flex; align-items:center; gap:6px; font-family:var(--serif); font-size:13.5px; font-weight:600;
+    padding:8px 16px; border-radius:var(--radius); border:1px solid var(--line-strong); color:var(--ink);
+    background:var(--bg-raised); white-space:nowrap;
+  }
+  .pill:hover{border-color:var(--accent); color:var(--accent); text-decoration:none}
+  .pill.primary{background:var(--accent-metal); color:var(--accent-ink); border-color:var(--accent)}
+  .pill.primary:hover{color:var(--accent-ink); opacity:.88}
+
+  header.hero::after{
+    content:""; display:block; height:5px;
+    background:
+      linear-gradient(var(--accent-copper), var(--accent-copper)) left / 100% 1px no-repeat,
+      linear-gradient(var(--accent-copper), var(--accent-copper)) left bottom / 100% 1px no-repeat;
+  }
+
+  nav.toc{
+    position:sticky; top:0; z-index:10; background:var(--bg); border-bottom:1px solid var(--line);
+  }
+  nav.toc .wrap{display:flex; align-items:center; gap:10px; padding:11px 24px}
+  .toc-links{display:flex; gap:2px; overflow-x:auto; white-space:nowrap; flex:1; min-width:0}
+  nav.toc a{
+    font-family:var(--serif); color:var(--ink-soft); font-size:14px; font-weight:600; padding:6px 13px;
+  }
+  nav.toc a:hover{color:var(--accent); text-decoration:underline}
+
+  .search-btn{
+    display:flex; align-items:center; gap:7px; flex-shrink:0; white-space:nowrap;
+    font-family:var(--serif); font-size:13.5px; font-weight:600; color:var(--ink-soft);
+    background:var(--bg-raised); border:1px solid var(--line-strong); border-radius:var(--radius);
+    padding:7px 10px; cursor:pointer;
+  }
+  .search-btn:hover{border-color:var(--accent); color:var(--accent)}
+  .search-btn-icon{width:15px; height:15px; flex-shrink:0; color:inherit}
+  .search-kbd{
+    font-family:var(--sans); font-size:10.5px; color:var(--ink-faint); border:1px solid var(--line-strong);
+    border-radius:3px; padding:1px 5px; background:var(--bg); line-height:1.4;
+  }
+  @media (max-width:640px){
+    .search-btn span{display:none}
+    .search-kbd{display:none}
+    .search-btn{padding:7px}
+  }
+
+  .search-modal{
+    width:min(560px, 92vw); max-height:min(540px, 80vh); padding:0; margin:auto;
+    border:1px solid var(--line-strong); border-radius:6px; background:var(--bg);
+    box-shadow:0 20px 60px rgba(0,0,0,.25); color:var(--ink);
+    overflow:hidden;
+  }
+  .search-modal[open]{display:flex; flex-direction:column}
+  .search-modal::backdrop{background:rgba(10,8,25,.45)}
+  .search-head{display:flex; align-items:center; gap:10px; padding:14px 16px; border-bottom:1px solid var(--line)}
+  .search-head-icon{width:18px; height:18px; flex-shrink:0; color:var(--ink-faint)}
+  #searchInput{
+    flex:1; min-width:0; border:none; outline:none; background:none; color:var(--ink);
+    font-family:var(--sans); font-size:16px;
+  }
+  #searchInput::placeholder{color:var(--ink-faint)}
+  .search-close{
+    flex-shrink:0; border:none; background:none; color:var(--ink-faint); font-size:14px;
+    cursor:pointer; padding:4px;
+  }
+  .search-close:hover{color:var(--accent)}
+  .search-results{overflow-y:auto; padding:6px}
+  .search-results:empty{display:none}
+  .search-result{
+    display:block; padding:10px 10px; border-radius:4px; text-decoration:none !important;
+    color:var(--ink);
+  }
+  .search-result + .search-result{margin-top:1px}
+  .search-result.active, .search-result:hover{background:var(--accent-soft)}
+  .search-result-main{display:flex; align-items:baseline; gap:8px}
+  .search-result-title{font-family:var(--serif); font-size:15px; font-weight:600; color:var(--ink)}
+  .search-result-title mark{background:none; color:var(--accent); font-weight:700}
+  .search-result-badge{
+    flex-shrink:0; margin-left:auto; font-family:var(--sans); font-size:9.5px; font-weight:700;
+    letter-spacing:.07em; padding:2px 6px; border-radius:2px; text-transform:uppercase; border:1px solid currentColor;
+  }
+  .search-result-meta{font-family:var(--sans); font-size:12px; color:var(--ink-faint); margin-top:2px}
+  .search-result-snippet{font-family:var(--sans); font-size:12.5px; color:var(--ink-soft); margin-top:4px; line-height:1.5}
+  .search-result-snippet mark{background:var(--accent-soft); color:var(--accent); font-style:normal}
+  .search-empty{padding:28px 16px; text-align:center; color:var(--ink-faint); font-size:14px; font-family:var(--serif)}
+  .search-hint{
+    display:flex; gap:10px; align-items:center; justify-content:center; margin:0; padding:9px 16px;
+    border-top:1px solid var(--line); font-family:var(--sans); font-size:11.5px; color:var(--ink-faint);
+  }
+  .search-hint kbd{
+    font-family:var(--sans); border:1px solid var(--line-strong); border-radius:3px; padding:1px 5px;
+    background:var(--bg-raised);
+  }
+  @media (max-width:600px){
+    .search-hint span:nth-child(odd){display:none}
+  }
+
+  main{padding:48px 0 88px}
+  section{margin-bottom:56px}
+  section > h2{
+    font-family:var(--serif); font-variant:small-caps; font-size:16px; letter-spacing:.04em;
+    color:var(--accent); margin:0 0 2px; font-weight:600;
+  }
+  section > h3{font-family:var(--serif); font-weight:600; font-size:26px; margin:2px 0 8px; letter-spacing:-.005em}
+  section > p.blurb{color:var(--ink-soft); margin:0 0 22px; font-size:15px; max-width:620px}
+
+  #description{
+    padding:28px 28px 26px; margin-bottom:60px; background:var(--bg-raised);
+    border:1px solid var(--line-strong); border-top:3px solid var(--accent-copper);
+  }
+  #description h3{margin-top:2px}
+  .prose p{font-family:var(--serif); font-size:16.5px; line-height:1.75; color:var(--ink-soft); max-width:680px; margin:0 0 17px}
+  .prose p:last-child{margin-bottom:0}
+  .prose > p:first-of-type::first-letter{
+    font-family:var(--display); font-weight:700; font-size:3.4em; line-height:.72;
+    float:left; margin:6px 9px 0 0; color:var(--accent);
+  }
+  .read-more{
+    display:inline-flex; align-items:center; gap:6px; margin:-4px 0 0; padding:4px 0;
+    font-family:var(--serif); font-size:14.5px; font-weight:600; color:var(--accent);
+    background:none; border:none; cursor:pointer;
+  }
+  .read-more:hover{text-decoration:underline}
+  .read-more-icon{display:inline-block; font-size:12px; transition:transform .25s ease}
+  .read-more[aria-expanded="true"] .read-more-icon{transform:rotate(180deg)}
+  .prose-more{max-height:0; overflow:hidden; opacity:0; transition:max-height .45s ease, opacity .35s ease}
+  .prose-more.expanded{opacity:1}
+  .prose-more p:first-child{margin-top:17px}
+
+  .source-note{font-family:var(--sans); font-size:12.5px; color:var(--ink-faint); margin:18px 0 0}
+  .source-note a{font-weight:600}
+  @media (max-width:600px){
+    #description{padding:22px 18px 20px}
+  }
+
+  .list{display:flex; flex-direction:column; border-top:1px solid var(--line-strong); border-bottom:1px solid var(--line-strong); background:var(--bg-raised)}
+  .row{
+    display:flex; align-items:center; gap:14px; padding:14px 16px; border-bottom:1px solid var(--line);
+  }
+  .list .row:last-child{border-bottom:none}
+  .row:hover{background:var(--accent-soft)}
+  .row.disabled:hover{background:transparent}
+  .row a.title-link{flex:1; font-family:var(--serif); color:var(--ink); font-size:16px; font-weight:500; min-width:0}
+  .row a.title-link:hover{color:var(--accent); text-decoration:none}
+  .row .title-link .sub{display:block; font-family:var(--sans); color:var(--ink-faint); font-size:12.5px; font-weight:400; margin-top:2px}
+  .row.disabled .title-link{color:var(--ink-faint); cursor:default}
+  .badge{
+    flex-shrink:0; font-family:var(--sans); font-size:10px; font-weight:700; letter-spacing:.08em; padding:3px 8px;
+    border-radius:2px; text-transform:uppercase; border:1px solid currentColor; background:transparent;
+  }
+  .badge.pdf{color:var(--pdf)}
+  .badge.html{color:var(--html)}
+  .badge.ext{color:var(--ext)}
+  .badge.missing{color:var(--missing)}
+  .missing-link{flex-shrink:0; font-size:12.5px; font-weight:600; font-style:italic}
+
+  hr.rule{border:none; border-top:1px solid var(--line); margin:30px 0}
+
+  .note{
+    border:1px solid var(--line-strong); border-left:3px solid var(--accent-copper); background:var(--bg-raised);
+    padding:20px 22px; font-size:14.5px; color:var(--ink-soft);
+  }
+  .note code{background:var(--code); padding:1px 6px; border-radius:2px; font-size:13px; font-family:ui-monospace,monospace}
+  .note a{font-weight:600}
+
+  footer{border-top:1px solid var(--line); padding:34px 0 48px; color:var(--ink-faint); font-size:13.5px}
+  footer a{color:var(--ink-faint); text-decoration:underline}
+
+  @media (max-width:600px){
+    header.hero{padding:44px 0 0}
+    .row{padding:13px 14px}
+  }
+
+  /* ---- a little more exciting ---- */
+  html{scroll-behavior:smooth}
+  section{scroll-margin-top:64px}
+
+  .progress-bar{
+    position:fixed; top:0; left:0; height:3px; width:0%; z-index:1000;
+    background:linear-gradient(90deg, var(--accent), var(--pdf));
+  }
+
+  header.hero{position:relative; overflow:hidden}
+  header.hero .wrap{position:relative; z-index:1}
+  .glyphs{position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:0}
+  .glyphs span{
+    position:absolute; font-family:var(--serif); font-style:italic; font-weight:600;
+    font-size:68px; color:var(--accent); opacity:.08; animation:float 13s ease-in-out infinite;
+  }
+  @keyframes float{
+    0%,100%{transform:translateY(0) rotate(0deg)}
+    50%{transform:translateY(-16px) rotate(3deg)}
+  }
+
+  .motif{position:absolute; top:-10px; right:-50px; z-index:0; pointer-events:none; animation:drift 16s ease-in-out infinite}
+  @keyframes drift{
+    0%,100%{transform:translateY(0) rotate(0deg)}
+    50%{transform:translateY(-10px) rotate(-1.5deg)}
+  }
+  @media (max-width:760px){ .motif{display:none} }
+
+  header.hero::after{animation: drawline 1.1s cubic-bezier(.4,0,.2,1) both}
+  @keyframes drawline{
+    from{background-size:0% 1px, 0% 1px}
+    to{background-size:100% 1px, 100% 1px}
+  }
+
+  .stats{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:22px; font-family:var(--serif); font-size:14px; color:var(--ink-soft)}
+  .stats strong{color:var(--accent); font-weight:700; font-size:16px}
+  .stats .dot{color:var(--line-strong)}
+
+  .pill{transition:transform .15s ease, border-color .15s ease, color .15s ease}
+  .pill.primary:hover{transform:translateX(2px)}
+
+  nav.toc a{position:relative}
+  nav.toc a:hover{text-decoration:none}
+  nav.toc a::after{
+    content:""; position:absolute; left:13px; right:13px; bottom:3px; height:2px; background:var(--accent);
+    transform:scaleX(0); transform-origin:left; transition:transform .2s ease;
+  }
+  nav.toc a:hover::after{transform:scaleX(1)}
+
+  main section{opacity:0; transform:translateY(14px); transition:opacity .55s ease, transform .55s ease}
+  main section.in-view{opacity:1; transform:translateY(0)}
+
+  .row{position:relative; transition:background .15s ease}
+  .row::before{
+    content:""; position:absolute; left:0; top:8px; bottom:8px; width:3px; background:var(--accent);
+    border-radius:0 2px 2px 0; transform:scaleY(0); transform-origin:center; transition:transform .22s ease;
+  }
+  .row:hover::before{transform:scaleY(1)}
+  .row.disabled::before{display:none}
+  .row a.title-link{transition:transform .15s ease, color .15s ease}
+  .row:hover a.title-link{transform:translateX(2px)}
+  .badge{transition:transform .15s ease}
+  .row:hover .badge{transform:scale(1.05)}
+
+  .back-to-top{
+    position:fixed; right:20px; bottom:20px; width:42px; height:42px; border-radius:50%;
+    background:var(--accent-metal); color:var(--accent-ink); display:flex; align-items:center; justify-content:center;
+    font-size:18px; font-family:var(--serif); box-shadow:var(--shadow); opacity:0; pointer-events:none;
+    transform:translateY(8px); transition:opacity .25s ease, transform .25s ease; z-index:999;
+  }
+  .back-to-top.visible{opacity:1; pointer-events:auto; transform:translateY(0)}
+  .back-to-top:hover{text-decoration:none; opacity:.85}
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    .glyphs span{animation:none}
+    .motif{animation:none}
+    header.hero::after{animation:none}
+    main section{opacity:1; transform:none; transition:none}
+    .progress-bar, .back-to-top{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<header class="hero" id="top">
+  <div class="glyphs" aria-hidden="true">
+    <span style="top:8%;left:5%;animation-delay:0s;">∇</span>
+    <span style="top:60%;left:12%;animation-delay:-3s;">Σ</span>
+    <span style="top:14%;left:85%;animation-delay:-6s;">θ</span>
+    <span style="top:70%;left:90%;animation-delay:-1.5s;">π</span>
+    <span style="top:38%;left:48%;animation-delay:-4.5s;">α</span>
+    <span style="top:82%;left:38%;animation-delay:-2s;">⊗</span>
+  </div>
+  <div class="motif" aria-hidden="true">
+    <svg viewBox="0 0 220 200" width="380" height="340" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent)"></path>
+        </marker>
+      </defs>
+      <!-- a tiny self-attention motif: three tokens attending to one query -->
+      <circle cx="46" cy="52" r="7" fill="none" stroke="var(--accent)" stroke-opacity="0.55" stroke-width="2"></circle>
+      <circle cx="46" cy="110" r="7" fill="none" stroke="var(--accent)" stroke-opacity="0.55" stroke-width="2"></circle>
+      <circle cx="46" cy="168" r="7" fill="none" stroke="var(--accent)" stroke-opacity="0.55" stroke-width="2"></circle>
+      <circle cx="168" cy="110" r="10" fill="var(--accent)" fill-opacity="0.18" stroke="var(--accent)" stroke-opacity="0.65" stroke-width="2.2"></circle>
+      <line x1="53" y1="54" x2="156" y2="104" stroke="var(--accent)" stroke-opacity="0.25" stroke-width="2" marker-end="url(#arrowhead)"></line>
+      <line x1="53" y1="110" x2="156" y2="110" stroke="var(--accent)" stroke-opacity="0.55" stroke-width="3" marker-end="url(#arrowhead)"></line>
+      <line x1="53" y1="166" x2="156" y2="116" stroke="var(--accent)" stroke-opacity="0.4" stroke-width="2.4" marker-end="url(#arrowhead)"></line>
+      <text x="172" y="80" font-family="var(--serif)" font-style="italic" font-weight="600" font-size="20" fill="var(--accent)" fill-opacity="0.45">softmax</text>
+    </svg>
+  </div>
+  <div class="wrap">
+    <p class="kicker">261COSI‑115B‑1 · Brandeis University · Spring 2026</p>
+    <h1>CS 115: Foundations of Large Language Models</h1>
+    <p class="tagline">From Perceptrons to Large Language Models</p>
+    <p class="byline">Taught by James Pustejovsky, with Teaching Assistant Tim — lectures, quizzes, and homework, mirrored from the course Moodle site.</p>
+    <div class="hero-links">
+      <a class="pill primary" href="#part-i">Start reading →</a>
+      <a class="pill" href="https://github.com/pustejovsky/CS115-Foundations-of-LLMs">GitHub repo</a>
+      <a class="pill" href="https://moodle.brandeis.edu/course/view.php?id=4421">Moodle (Brandeis login)</a>
+      <a class="pill" href="https://pusto.com">James Pustejovsky →</a>
+    </div>
+    <div class="stats" aria-label="Course site at a glance">
+      <span><strong data-count="61">0</strong> readings</span>
+      <span class="dot">·</span>
+      <span><strong data-count="4">0</strong> parts</span>
+      <span class="dot">·</span>
+      <span>Spring 2026</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <div class="toc-links">
+      <a href="#part-i">Part I</a>
+      <a href="#part-ii">Part II</a>
+      <a href="#part-iii">Part III</a>
+      <a href="#part-iv">Part IV</a>
+      <a href="#quizzes">Quizzes</a>
+      <a href="#homework">Homework</a>
+      <a href="#final-project">Final Project</a>
+      <a href="#course-info">Course info</a>
+      <a href="#about">About this site</a>
+    </div>
+    <button type="button" class="search-btn" id="searchBtn" aria-haspopup="dialog" aria-controls="searchModal">
+      <svg class="search-btn-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="1.8"></circle>
+        <line x1="13.2" y1="13.2" x2="18" y2="18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></line>
+      </svg>
+      <span>Search</span>
+      <kbd class="search-kbd">⌘K</kbd>
+    </button>
+  </div>
+</nav>
+
+<dialog class="search-modal" id="searchModal" aria-label="Search the course site">
+  <div class="search-head">
+    <svg class="search-head-icon" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="8.5" cy="8.5" r="6" stroke="currentColor" stroke-width="1.8"></circle>
+      <line x1="13.2" y1="13.2" x2="18" y2="18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></line>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Search titles, slides, and readings…" autocomplete="off" spellcheck="false" aria-controls="searchResults" role="combobox" aria-expanded="false" aria-autocomplete="list">
+    <button type="button" class="search-close" id="searchClose" aria-label="Close search">✕</button>
+  </div>
+  <div class="search-results" id="searchResults" role="listbox"></div>
+  <p class="search-hint"><kbd>↑</kbd><kbd>↓</kbd> to navigate · <kbd>Enter</kbd> to open · <kbd>Esc</kbd> to close</p>
+</dialog>
+
+<main class="wrap">
+
+  <section id="description">
+    <h2>About the Course</h2>
+    <h3>Course Description</h3>
+    <div class="prose">
+      <p>This course is the second half of the department's two-course NLP sequence, picking up where classical statistical and structural methods leave off and tracing the path toward today's large language models. We move from syntactic parsing and the perceptron through distributional semantics and neural network architectures — convolutional and recurrent — to the attention mechanism and the transformer, the architecture behind every modern LLM.</p>
+      <button type="button" class="read-more" id="readMoreBtn" aria-expanded="false" aria-controls="moreProse">
+        <span class="read-more-label">Read more</span>
+        <span class="read-more-icon" aria-hidden="true">↓</span>
+      </button>
+      <div class="prose-more" id="moreProse">
+        <p>From there the course turns to what makes a transformer into a large language model: subtoken encoding, positional embeddings, parameter counting and scaling laws, mixture-of-experts routing, post-training (instruction tuning and reinforcement learning), and reinforcement learning more generally. Two quizzes, four homeworks, and a final project — proposed, implemented, and presented — anchor the term.</p>
+      </div>
+    </div>
+    <p class="source-note">See the full <a href="#course-info">lecture schedule and grading breakdown</a> below.</p>
+  </section>
+
+  <section id="part-i">
+    <h2>Part I</h2>
+    <h3>Linguistics, Syntax, and Learning to Classify</h3>
+    <p class="blurb">Where NLP meets the age of big data and LLMs, a review of syntax and parsing, and the perceptron and logistic regression as the first learning algorithms.</p>
+    <div class="list">
+      <div class="row"><a class="title-link" href="File_Course_Intro_Slides_.371989/content/cs115b_intro_slides.pdf">Course Intro Slides</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Linguistics_in_the_Age_o..._.371990/content/linguistics_in_age_of_data.pdf">Linguistics in the Age of Big Data and LLMs</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Evaluation_Methods_in_NLP_.371993/content/evaluation-lecture.pdf">Evaluation Methods in NLP</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Elements_of_Syntax_for_P..._.372112/content/syntax-lecture.pdf">Elements of Syntax for Parsing</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_CKY_Algorithm_Chomsky_No..._.372113/content/cky-slides-2026.pdf">CKY Algorithm, Chomsky Normal Form</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Pop_quiz_questions_from_..._.374406/content/PopupQuestions-CFG.pdf">Pop quiz questions from 1/20/26<span class="sub">CFGs</span></a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_PCFGs_.374690/content/NLP_II__PCFG_.pdf">PCFGs</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Pop-up_Quiz_and_Answers_.380066/content/PopupQuestions-CFG.pdf">Pop-up Quiz and Answers<span class="sub">CFGs</span></a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Perceptron_Learning_.375979/content/perceptron-lecture-v2.pdf">Perceptron Learning</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Linear_Separability_.375981/content/linear-separability.pdf">Linear Separability</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Linear_Regression_-_Wher..._.375982/content/linear-regression-lecture.pdf">Linear Regression — Where Learning Begins</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_LR_and_Perceptron_The_Math_.379372/content/NLP_II__Logistic_Regression_and_Perceptron_.pdf">Logistic Regression and the Perceptron: The Math</a><span class="badge pdf">PDF</span></div>
+    </div>
+  </section>
+
+  <section id="part-ii">
+    <h2>Part II</h2>
+    <h3>Distributional Semantics and Neural Networks</h3>
+    <p class="blurb">Count-based vector spaces through SVD and prediction-based embeddings, neural network fundamentals, structured prediction, and neural dependency parsing.</p>
+    <div class="list">
+      <div class="row"><a class="title-link" href="File_Distributional_Semantics..._.378721/content/distributional-semantics-lecture.pdf">Distributional Semantics — SVDs, Word2Vec</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Hierarchical_Softmax_for..._.378722/content/word2vec-trees.pdf">Hierarchical Softmax for Word2Vec</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Latent_Semantic_Analysis_.378723/content/lsa_lsi_slides.pdf">Latent Semantic Analysis</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_PMI_PPMI_and_SVD_.378724/content/pmi_ppmi_svd.pdf">PMI, PPMI, and SVD</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Fundamentals_of_Neural_N..._.378725/content/Neural_Networks_NLMs.pdf">Fundamentals of Neural Network Architectures</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Distributional_Semantics..._.379373/content/NLP_II__Distributional_Semantics_and_NN_.pdf">Distributional Semantics and Neural Networks</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Computation_Graphs_and_B..._.379517/content/computation_graphs.pdf">Computation Graphs and Back Propagation</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Pop-up_Quiz_and_Answers_.380064/content/distrib_sem_quiz_answers.pdf">Pop-up Quiz and Answers<span class="sub">Distributional semantics</span></a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Structured_Prediction_.380065/content/structured_prediction.pdf">Structured Prediction</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Examples_of_Structured_P..._.382843/content/Detailed%20Examples%20for%20Structured%20Prediction%20-%20Tagging%20and%20NER.pdf">Examples of Structured Prediction<span class="sub">Tagging and NER</span></a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Neural_Dependency_Parsing_.382844/content/neural_dependency_parsing.pdf">Neural Dependency Parsing</a><span class="badge pdf">PDF</span></div>
+    </div>
+  </section>
+
+  <section id="part-iii">
+    <h2>Part III</h2>
+    <h3>Sequence Models: CNNs and RNNs</h3>
+    <p class="blurb">Convolutional and recurrent networks for NLP, the last stop before attention.</p>
+    <div class="list">
+      <div class="row"><a class="title-link" href="File_Introduction_.389500/content/cnn1.pdf">Introduction to CNNs</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_CNNs_-_slides_from_March..._.389496/content/cnns_for_nlp.pdf">CNNs — slides from March 10, 2026</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_RNNs_-_Slides_from_March..._.389497/content/rnns_for_nlp.pdf">RNNs — slides from March 13, 2026</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Pop_Quiz_Questions_and_A..._.389499/content/Popquiz-CCN-RNN.pdf">Pop Quiz Questions and Answers for CNNs and RNNs</a><span class="badge pdf">PDF</span></div>
+    </div>
+  </section>
+
+  <section id="part-iv">
+    <h2>Part IV</h2>
+    <h3>Attention, Transformers, and Large Language Models</h3>
+    <p class="blurb">Attention and its scoring, the transformer decoder, subtoken and positional encodings, scaling, post-training, reinforcement learning, and mixture-of-experts models.</p>
+    <div class="list">
+      <div class="row"><a class="title-link" href="File_Attention_in_NLP_.389502/content/rnns_for_nlp.pdf">Attention in NLP</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Methods_of_Scoring_Atten..._.389503/content/attention_scoring_deck.pdf">Methods of Scoring Attention in NMT</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Backprop_Math_Optimizers..._.390112/content/NLP_II__Math___LLMs_.pdf">Backprop Math, Optimizers, Dependency Parsing, Attention</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_A_Step-by-step_analysis_..._.392127/content/lecture_inside_transformer.pdf">A Step-by-step Analysis of a Decoder Model</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Subtoken_Encoding_Strate..._.392128/content/subtoken-encoding.pdf">Subtoken Encoding Strategies for LLMs</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Positional_Encoding_Embe..._.392129/content/positional_encoding_lecture-final.pdf">Positional Encoding Embeddings</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Calculating_Parameter_Si..._.392130/content/LLM-ParameterCount-Beamer.pdf">Calculating Parameter Sizes in LLMs</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Self-Attention_and_Trans..._.392424/content/NLP_II__Tranformers_.pdf">Self-Attention and Transformers</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Introduction_to_Reinforc..._.402897/content/rl_intro_nlp2.pdf">Introduction to Reinforcement Learning</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Post-training_for_LLMs_.402898/content/post_training_llms_beamer.pdf">Post-training for LLMs</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Scaling_.405101/content/scaling_laws_condensed.pdf">Scaling<span class="sub">Condensed slides</span></a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Scaling_.405101/content/scaling_laws_lecture.pdf">Scaling<span class="sub">Full lecture</span></a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="File_Mixture_of_Experts_Models_.405104/content/moe_agentic_v2.pdf">Mixture of Experts Models</a><span class="badge pdf">PDF</span></div>
+    </div>
+  </section>
+
+  <section id="quizzes">
+    <h2>Assessments</h2>
+    <h3>Quizzes</h3>
+    <div class="list">
+      <div class="row"><a class="title-link" href="File_Quiz_1_Review_.382450/content/NLP_II__Quiz_1_Review_.pdf">Quiz 1 Review</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="Assignment_Quiz_1_.383350/index.html">Quiz 1<span class="sub">Assignment — submissions not included in this export</span></a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="File_Quiz_2_Review_.404732/content/NLP_II_Quiz_2_Review.pdf">Quiz 2 Review</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="URL_Quiz_2_Kahoot_.404733/index.html">Quiz 2 Kahoot<span class="sub">External quiz tool — not archived here</span></a><span class="badge ext">external</span></div>
+      <div class="row"><a class="title-link" href="Assignment_Quiz_2_.408390/index.html">Quiz 2<span class="sub">Assignment — submissions not included in this export</span></a><span class="badge html">HTML</span></div>
+    </div>
+  </section>
+
+  <section id="homework">
+    <h2>Assessments</h2>
+    <h3>Homework</h3>
+    <div class="list">
+      <div class="row"><a class="title-link" href="Assignment_Homework_1_.376415/index.html">Homework 1<span class="sub">Assignment — submissions not included in this export</span></a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="Assignment_Homework_2_.384329/index.html">Homework 2<span class="sub">Assignment — submissions not included in this export</span></a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="Assignment_Homework_3_.390874/index.html">Homework 3<span class="sub">Assignment — submissions not included in this export</span></a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="Assignment_Homework_4_.403612/index.html">Homework 4<span class="sub">Assignment — submissions not included in this export</span></a><span class="badge html">HTML</span></div>
+    </div>
+  </section>
+
+  <section id="final-project">
+    <h2>Assessments</h2>
+    <h3>Final Project</h3>
+    <div class="list">
+      <div class="row"><a class="title-link" href="File_NLP_Tutorials_.380121/content/NLP_II__Tutorial_Day_.pdf">NLP Tutorials</a><span class="badge pdf">PDF</span></div>
+      <div class="row"><a class="title-link" href="Assignment_Final_Project_Prop..._.385347/index.html">Final Project Proposal<span class="sub">Assignment — submissions not included in this export</span></a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="Assignment_Final_Project_.410020/index.html">Final Project<span class="sub">Code + write-up — submissions not included in this export</span></a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="Assignment_Final_Project_Pres..._.410021/index.html">Final Project Presentations<span class="sub">Assignment — submissions not included in this export</span></a><span class="badge html">HTML</span></div>
+    </div>
+  </section>
+
+  <section id="course-info">
+    <h2>Course information</h2>
+    <h3>Schedule, readings &amp; logistics</h3>
+    <div class="list">
+      <div class="row"><a class="title-link" href="Text_and_media_area_Lecture_D..._.369043/index.html">Full Lecture Schedule<span class="sub">Date, topic, readings and homework by session</span></a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="Text_and_media_area_Meeting_T..._.369034/index.html">Meeting Times<span class="sub">Tue/Fri 11:10–12:30, Volen 119 · Recitation Fri 2:20–4:00, Volen 119</span></a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="Text_and_media_area_Office_Hours_.369035/index.html">Office Hours</a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="Text_and_media_area_Grade_Bre..._.369150/index.html">Grade Breakdown</a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="URL_E_Natural_Language_Proces..._.369033/index.html">(E) Natural Language Processing — Eisenstein<span class="sub">Not mirrored here — free course notes from the author</span></a><a class="missing-link" href="https://github.com/jacobeisenstein/gt-nlp-class">source ↗</a><span class="badge ext">external</span></div>
+      <div class="row"><a class="title-link" href="URL_JM_Speech_and_Language_Pr..._.369031/index.html">(JM) Speech and Language Processing — Jurafsky &amp; Martin<span class="sub">Not mirrored here — free draft from the authors</span></a><a class="missing-link" href="https://web.stanford.edu/~jurafsky/slp3/">source ↗</a><span class="badge ext">external</span></div>
+      <div class="row"><a class="title-link" href="Forum_News_amp_Announcements_.321438/index.html">News &amp; Announcements<span class="sub">Forum</span></a><span class="badge html">HTML</span></div>
+      <div class="row"><a class="title-link" href="Forum_Ask_the_Class_.321439/index.html">Ask the Class<span class="sub">Forum</span></a><span class="badge html">HTML</span></div>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2>About this site</h2>
+    <h3>How it's built</h3>
+    <div class="note">
+      This page is a hand‑built index over a verbatim export of the course's
+      <a href="https://moodle.brandeis.edu/course/view.php?id=4421">Brandeis Moodle site</a>,
+      taken 2 November 2026. Every link above opens the original file from the export —
+      nothing has been re‑hosted or re‑typeset. The raw Moodle front page is still here too,
+      at <a href="moodle-export.html">moodle-export.html</a>.
+      <br><br>
+      The two textbooks referenced above — Eisenstein's <em>Natural Language Processing</em>
+      course notes and Jurafsky &amp; Martin's <em>Speech and Language Processing</em> —
+      are marked <span class="badge ext" style="vertical-align:1px">external</span> because the
+      Moodle course links to them rather than hosting a copy; both are freely available from
+      their authors, linked above.
+      <br><br>
+      Source and full README: <a href="https://github.com/pustejovsky/CS115-Foundations-of-LLMs">github.com/pustejovsky/CS115-Foundations-of-LLMs</a>.
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    261COSI‑115B‑1 — Foundations of Large Language Models · James Pustejovsky · Brandeis University · Spring 2026<br>
+    Course materials shared for students and reference; please credit the author and course if reused.
+  </div>
+</footer>
+
+<a href="#top" class="back-to-top" id="backToTop" aria-label="Back to top">↑</a>
+
+<script>
+(function(){
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Scroll progress bar + back-to-top visibility
+  var bar = document.getElementById('progressBar');
+  var backToTop = document.getElementById('backToTop');
+  function onScroll(){
+    var doc = document.documentElement;
+    var max = doc.scrollHeight - doc.clientHeight;
+    var pct = max > 0 ? (doc.scrollTop / max) * 100 : 0;
+    if (bar) bar.style.width = pct + '%';
+    if (backToTop) backToTop.classList.toggle('visible', doc.scrollTop > 420);
+  }
+  window.addEventListener('scroll', onScroll, {passive: true});
+  onScroll();
+
+  // Section reveal on scroll
+  var sections = document.querySelectorAll('main section');
+  if ('IntersectionObserver' in window && !reduceMotion) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          io.unobserve(entry.target);
+        }
+      });
+    }, {threshold: 0.08, rootMargin: '0px 0px -40px 0px'});
+    sections.forEach(function(s){ io.observe(s); });
+  } else {
+    sections.forEach(function(s){ s.classList.add('in-view'); });
+  }
+
+  // Read more / show less toggle for the course description
+  var readMoreBtn = document.getElementById('readMoreBtn');
+  var moreProse = document.getElementById('moreProse');
+  if (readMoreBtn && moreProse) {
+    readMoreBtn.addEventListener('click', function(){
+      var expanded = readMoreBtn.getAttribute('aria-expanded') === 'true';
+      readMoreBtn.setAttribute('aria-expanded', String(!expanded));
+      readMoreBtn.querySelector('.read-more-label').textContent = expanded ? 'Read more' : 'Show less';
+      if (expanded) {
+        moreProse.style.maxHeight = moreProse.scrollHeight + 'px';
+        requestAnimationFrame(function(){
+          moreProse.classList.remove('expanded');
+          moreProse.style.maxHeight = '0px';
+        });
+      } else {
+        moreProse.classList.add('expanded');
+        moreProse.style.maxHeight = moreProse.scrollHeight + 'px';
+        moreProse.addEventListener('transitionend', function onEnd(e){
+          if (e.propertyName === 'max-height') {
+            moreProse.style.maxHeight = 'none';
+            moreProse.removeEventListener('transitionend', onEnd);
+          }
+        });
+      }
+    });
+  }
+
+  // Site search
+  (function(){
+    var btn = document.getElementById('searchBtn');
+    var modal = document.getElementById('searchModal');
+    var input = document.getElementById('searchInput');
+    var closeBtn = document.getElementById('searchClose');
+    var results = document.getElementById('searchResults');
+    if (!btn || !modal || !input || !results) return;
+
+    var indexPromise = null;
+    var items = [];
+    var activeIndex = -1;
+
+    function ensureIndex(){
+      if (!indexPromise) {
+        indexPromise = fetch('search-index.json').then(function(r){ return r.json(); })
+          .then(function(data){
+            items = data.map(function(e){
+              return {
+                title: e.title || '', sub: e.sub || '', section: e.section || '',
+                href: e.href, type: e.type || '', text: e.text || '',
+                titleLc: (e.title || '').toLowerCase(),
+                subLc: (e.sub || '').toLowerCase(),
+                sectionLc: (e.section || '').toLowerCase(),
+                textLc: (e.text || '').toLowerCase()
+              };
+            });
+            return items;
+          })
+          .catch(function(){ results.innerHTML = '<p class="search-empty">Search index failed to load.</p>'; return []; });
+      }
+      return indexPromise;
+    }
+
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, function(c){
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+      });
+    }
+
+    function highlight(str, tokens){
+      var escaped = escapeHtml(str);
+      tokens.forEach(function(t){
+        if (!t) return;
+        var re = new RegExp('(' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
+        escaped = escaped.replace(re, '<mark>$1</mark>');
+      });
+      return escaped;
+    }
+
+    function snippetFor(entry, tokens){
+      var idx = -1;
+      for (var i = 0; i < tokens.length; i++) {
+        var p = entry.textLc.indexOf(tokens[i]);
+        if (p > -1) { idx = p; break; }
+      }
+      if (idx === -1) return '';
+      var start = Math.max(0, idx - 55);
+      var end = Math.min(entry.text.length, idx + 95);
+      var snippet = (start > 0 ? '…' : '') + entry.text.slice(start, end).trim() + (end < entry.text.length ? '…' : '');
+      return highlight(snippet, tokens);
+    }
+
+    function score(entry, tokens){
+      var s = 0;
+      for (var i = 0; i < tokens.length; i++) {
+        var t = tokens[i];
+        var hit = false;
+        if (entry.titleLc.indexOf(t) === 0) { s += 50; hit = true; }
+        else if (entry.titleLc.indexOf(t) > -1) { s += 35; hit = true; }
+        if (entry.subLc.indexOf(t) > -1) { s += 15; hit = true; }
+        if (entry.sectionLc.indexOf(t) > -1) { s += 6; hit = true; }
+        if (entry.textLc.indexOf(t) > -1) { s += 8; hit = true; }
+        if (!hit) return -1;
+      }
+      return s;
+    }
+
+    function render(query){
+      var tokens = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      activeIndex = -1;
+      if (!tokens.length) {
+        results.innerHTML = '';
+        input.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      var scored = [];
+      for (var i = 0; i < items.length; i++) {
+        var s = score(items[i], tokens);
+        if (s > -1) scored.push({ entry: items[i], s: s });
+      }
+      scored.sort(function(a, b){ return b.s - a.s; });
+      scored = scored.slice(0, 30);
+
+      if (!scored.length) {
+        results.innerHTML = '<p class="search-empty">No matches for “' + escapeHtml(query) + '”.</p>';
+        input.setAttribute('aria-expanded', 'false');
+        return;
+      }
+      input.setAttribute('aria-expanded', 'true');
+      results.innerHTML = scored.map(function(r, i){
+        var e = r.entry;
+        var meta = [e.section, e.sub].filter(Boolean).join(' · ');
+        var snippet = snippetFor(e, tokens);
+        return '<a class="search-result" href="' + escapeHtml(e.href) + '" role="option" id="search-opt-' + i + '">' +
+          '<div class="search-result-main">' +
+            '<span class="search-result-title">' + highlight(e.title, tokens) + '</span>' +
+            (e.type ? '<span class="search-result-badge badge ' + e.type + '">' + e.type + '</span>' : '') +
+          '</div>' +
+          (meta ? '<div class="search-result-meta">' + escapeHtml(meta) + '</div>' : '') +
+          (snippet ? '<div class="search-result-snippet">' + snippet + '</div>' : '') +
+        '</a>';
+      }).join('');
+    }
+
+    function setActive(i){
+      var rows = results.querySelectorAll('.search-result');
+      if (!rows.length) return;
+      if (activeIndex > -1 && rows[activeIndex]) rows[activeIndex].classList.remove('active');
+      activeIndex = Math.max(0, Math.min(i, rows.length - 1));
+      rows[activeIndex].classList.add('active');
+      rows[activeIndex].scrollIntoView({ block: 'nearest' });
+      input.setAttribute('aria-activedescendant', rows[activeIndex].id);
+    }
+
+    function openSearch(){
+      ensureIndex();
+      if (typeof modal.showModal === 'function') modal.showModal();
+      else modal.setAttribute('open', '');
+      input.value = '';
+      results.innerHTML = '';
+      setTimeout(function(){ input.focus(); }, 0);
+    }
+
+    btn.addEventListener('click', openSearch);
+    if (closeBtn) closeBtn.addEventListener('click', function(){ modal.close(); });
+    modal.addEventListener('click', function(e){ if (e.target === modal) modal.close(); });
+    document.addEventListener('keydown', function(e){
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openSearch();
+      }
+    });
+
+    var debounceTimer;
+    input.addEventListener('input', function(){
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function(){
+        ensureIndex().then(function(){ render(input.value); });
+      }, 90);
+    });
+    input.addEventListener('keydown', function(e){
+      var rows = results.querySelectorAll('.search-result');
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(activeIndex + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(activeIndex - 1); }
+      else if (e.key === 'Enter') {
+        e.preventDefault();
+        var target = activeIndex > -1 && rows[activeIndex] ? rows[activeIndex] : rows[0];
+        if (target) target.click();
+      }
+    });
+  })();
+
+  // Count-up stats
+  document.querySelectorAll('.stats strong[data-count]').forEach(function(el){
+    var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+    if (reduceMotion) { el.textContent = target; return; }
+    var start = null, duration = 900;
+    function step(ts){
+      if (start === null) start = ts;
+      var p = Math.min((ts - start) / duration, 1);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+})();
+</script>
+
+</body>
+</html>
